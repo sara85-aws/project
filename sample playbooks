@@ -1,0 +1,124 @@
+copy.yml
+
+ - hosts: all
+   become: true
+   tasks:
+     - name: Copy ansible inventory file to all hostmachines
+       copy: src=/etc/ansible/ansible.cfg 
+             dest=/tmp/  
+             owner=root 
+             group=root 
+             mode=0666
+
+
+====================
+
+find.yml
+
+- hosts: aws
+  become: yes
+  tasks:
+    - name: find the files
+      find:
+        paths: '/opt'
+        patterns: "*.log"
+      register: out
+
+    - name: remove the files
+      file:
+        path: "{{item.path}}"
+        state: absent
+      with_items: "{{out.files}}"
+      
+      =======================================
+      
+    facts.yml
+    
+    ---
+ - hosts: aws
+#   gather_facts: NO
+   tasks: 
+     - name: Checking the OS of the server
+       debug: 
+         msg: "OS vendor = {{ ansible_distribution }}"
+         
+    ===========
+     
+    stat.yml 
+    
+    - hosts: aws
+  become: yes
+  tasks:
+  - name: Check that the somefile.conf exists
+    stat:
+      path: /tmp/file.txt
+    register: stat_result
+
+  - name: Create the file, if it doesnt exist already
+    file:
+      path: /tmp/file.txt
+      state: touch
+    when: stat_result.stat.exists == False
+    
+    ===========
+    
+ when.yml
+ 
+ ---
+ - hosts: aws
+   become: yes
+   tasks:
+     - name: install a webserver 
+       yum:
+        name: Nginx
+        state: latest 
+       when: ansible_distribution == 'Ubuntu'
+       
+       
+   ===============
+   
+   
+   shell.yml
+   
+   ---
+ - hosts: aws
+   become: yes
+   tasks:
+     - name : execute a shell
+       shell: touch /tmp/ravi
+#       register: abc
+#     - debug:
+#         msg: "{{ abc.stdout_lines }}"
+#     - name : execute a command
+#       command: echo " executing a command" 
+
+
+
+===========
+
+var.yml
+
+- hosts: aws
+  vars:
+    PACKAGE:  ClassPackage
+    x: GM    
+  tasks:
+    - debug:
+        msg: "the value of PACKAGE = {{PACKAGE}}"
+        msg: "the value of x = {{x}}" 
+        
+        
+        
+    ============
+    
+- hosts: aws
+  become: yes
+  tasks:
+   - name: Install Git
+     yum: name=git state=present
+   - name: git clone
+     git:
+      repo: 'https://github.com/lerndevops/labs'
+      dest: /home
+    
+   ===================
